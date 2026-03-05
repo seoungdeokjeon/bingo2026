@@ -117,7 +117,7 @@
   }
 
   function initializeFixedProfiles() {
-    if (el.profileSelect) el.profileSelect.value = FIXED_PROFILES[0].id;
+    if (el.profileSelect) el.profileSelect.value = '';
   }
 
   function getActivePlayer() {
@@ -498,6 +498,10 @@
       return;
     }
     const id = el.profileSelect.value;
+    if (!id) {
+      openWarningModal('먼저 프로필을 선택해주세요.');
+      return;
+    }
     if (!state.players[id]) return;
     state.myPlayerId = id;
     state.viewingPlayerId = id;
