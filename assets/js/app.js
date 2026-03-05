@@ -317,12 +317,12 @@
     ytPlayer = new window.YT.Player('ytPlayerHost', {
       height: '1',
       width: '1',
-      videoId: 'jfKfPfyJRdk',
+      videoId: 'gzlUbrMlTVQ',
       playerVars: {
         autoplay: 1,
         controls: 0,
         loop: 1,
-        playlist: 'jfKfPfyJRdk',
+        playlist: 'gzlUbrMlTVQ',
         modestbranding: 1,
         rel: 0
       },
