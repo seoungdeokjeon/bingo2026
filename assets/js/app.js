@@ -39,7 +39,7 @@
   const SUPABASE_URL = window.SUPABASE_URL || '';
   const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
   let ytPlayer = null;
-  let musicMuted = true;
+  let musicMuted = false;
   let supabaseClient = null;
   let hasLoadedServerOnce = false;
   let syncInFlight = false;
@@ -320,6 +320,7 @@
       videoId: 'gzlUbrMlTVQ',
       playerVars: {
         autoplay: 1,
+        mute: 0,
         controls: 0,
         loop: 1,
         playlist: 'gzlUbrMlTVQ',
@@ -329,8 +330,8 @@
       events: {
         onReady: function (event) {
           event.target.setVolume(Number(el.musicVolume.value));
-          event.target.mute();
-          updateMusicStatus('준비됨 (음소거)');
+          event.target.unMute();
+          updateMusicStatus('준비됨');
           event.target.playVideo();
           setMusicButtonState();
         },
