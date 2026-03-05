@@ -45,6 +45,7 @@
   let syncInFlight = false;
   let syncQueued = false;
   let pullInFlight = false;
+  let lastServerSignature = '';
   const PROFILE_AVATARS = {
     jeon_seungdeok: { emoji: '🦥', src: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f9a5.svg' },
     seo_hyeonjun: { emoji: '🍉', src: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f349.svg' },
@@ -116,8 +117,30 @@
   }
 
   function persistAndRender() {
+    // Keep local signature in sync so periodic pulls do not cause unnecessary full re-renders.
+    lastServerSignature = createPlayersSignature(state.players);
     render();
     requestServerSync();
+  }
+
+  function createPlayersSignature(players) {
+    return FIXED_PROFILES.map(function (profile) {
+      const p = players[profile.id];
+      if (!p) return profile.id + ':missing';
+      const boardSig = (p.board || []).map(function (cell) {
+        return [
+          cell && cell.emoji ? cell.emoji : '',
+          cell && cell.text ? cell.text : '',
+          cell && cell.checked ? '1' : '0'
+        ].join('~');
+      }).join('|');
+      return [
+        p.id,
+        p.updatedAt || '',
+        p.winnerAt || '',
+        boardSig
+      ].join(':');
+    }).join('||');
   }
 
   function updateCountdown() {
@@ -217,13 +240,20 @@
       });
 
       const remoteFixed = buildFixedPlayers(players);
-      state.players = remoteFixed;
+      const nextSignature = createPlayersSignature(remoteFixed);
       if (!hasLoadedServerOnce) {
-        const preferred = el.profileSelect ? el.profileSelect.value : FIXED_PROFILES[0].id;
-        state.myPlayerId = state.players[preferred] ? preferred : FIXED_PROFILES[0].id;
-        state.viewingPlayerId = state.myPlayerId;
+        state.players = remoteFixed;
+        state.myPlayerId = null;
+        state.viewingPlayerId = FIXED_PROFILES[0].id;
         hasLoadedServerOnce = true;
+        lastServerSignature = nextSignature;
+        render();
+        return;
       }
+      if (nextSignature === lastServerSignature) return;
+
+      state.players = remoteFixed;
+      lastServerSignature = nextSignature;
       render();
     } catch (error) {
       // noop: keep local state when server temporarily unavailable
@@ -613,7 +643,6 @@
   }
 
   el.createOrLoadBtn.addEventListener('click', loginSelectedProfile);
-  el.profileSelect.addEventListener('change', loginSelectedProfile);
 
   window.addEventListener('resize', render);
 
