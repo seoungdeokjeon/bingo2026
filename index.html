@@ -4,462 +4,102 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>로또 번호 추첨기</title>
-  <style>
-    :root {
-      --bg: #f0f4f8;
-      --card: #ffffff;
-      --text: #333333;
-      --muted: #666666;
-      --accent: #007bff;
-      --good: #28a745;
-      --bad: #dc3545;
-      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      --radius: 12px;
-      --border: #eeeeee;
-    }
-
-    body.dark-mode {
-      --bg: #121212;
-      --card: #1e1e1e;
-      --text: #e0e0e0;
-      --muted: #a0a0a0;
-      --accent: #bb86fc;
-      --shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-      --border: #333333;
-    }
-
-    * {
-      box-sizing: border-box;
-      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    body {
-      margin: 0;
-      font-family: 'Noto Sans KR', sans-serif;
-      color: var(--text);
-      background: var(--bg);
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .wrap {
-      max-width: 800px;
-      margin: 0 auto;
-      position: relative;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 2.5rem;
-      color: var(--accent);
-    }
-
-    .subtitle {
-      color: var(--muted);
-      font-size: 1.1rem;
-      margin-top: 10px;
-    }
-
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
-    .btn {
-      appearance: none;
-      border: none;
-      cursor: pointer;
-      padding: 12px 24px;
-      border-radius: var(--radius);
-      color: white;
-      background: var(--accent);
-      font-weight: 600;
-      font-size: 1rem;
-      transition: background 0.3s ease;
-      margin: 10px;
-    }
-
-    .btn:hover {
-      opacity: 0.9;
-    }
-
-    .btn.secondary {
-      background: #6c757d;
-    }
-
-    .theme-toggle {
-      position: absolute;
-      top: 0;
-      right: 0;
-      padding: 8px 16px;
-      font-size: 0.9rem;
-    }
-
-    .numbers {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 20px 0;
-    }
-
-    .number-ball {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 1.2rem;
-      color: white;
-      background: linear-gradient(135deg, #ff6b6b, #feca57);
-    }
-
-    .bonus-ball {
-      background: linear-gradient(135deg, #48cae4, #023e8a);
-    }
-
-    .history {
-      margin-top: 30px;
-    }
-
-    .history-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .history-numbers {
-      display: flex;
-      gap: 5px;
-    }
-
-    .small-ball {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-      color: white;
-      background: #ccc;
-    }
-
-    .date {
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .inquiry-form {
-      display: grid;
-      gap: 12px;
-    }
-
-    .inquiry-form label {
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-
-    .inquiry-form input,
-    .inquiry-form textarea {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      background: var(--card);
-      color: var(--text);
-      font: inherit;
-      outline: none;
-    }
-
-    .inquiry-form textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
-
-    .inquiry-form input:focus,
-    .inquiry-form textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .form-grid .full {
-      grid-column: span 2;
-    }
-
-    .form-status {
-      margin: 0;
-      font-size: 0.95rem;
-      min-height: 1.2em;
-      color: var(--muted);
-    }
-
-    .form-status.success {
-      color: var(--good);
-    }
-
-    .form-status.error {
-      color: var(--bad);
-    }
-
-    @media (max-width: 640px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .form-grid .full {
-        grid-column: auto;
-      }
-    }
-  </style>
+  <title>Bingo 2026 - 친구들과 1년 빙고</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Nunito:wght@500;700;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/main.css">
 </head>
 
 <body>
+  <div class="ambient-bg" aria-hidden="true">
+    <span class="orb orb-a"></span>
+    <span class="orb orb-b"></span>
+    <span class="orb orb-c"></span>
+  </div>
+
   <div class="wrap">
-    <button id="themeToggle" class="btn secondary theme-toggle">다크 모드</button>
-    <header>
-      <h1>로또 번호 추첨기</h1>
-      <div class="subtitle">행운의 번호를 생성해보세요!</div>
+    <header class="hero">
+      <h1>🌸 Bingo 2026 🌸</h1>
+      <div class="subtitle">혜지, 현준, 혜빈, 승덕이 함께하는 5x5 빙고. 3줄 먼저 완성하면 승리!</div>
+      <div class="countdown" id="countdownTimer">2026년 12월 31일까지 남은 시간 계산 중...</div>
     </header>
 
-    <div class="card">
-      <h2>번호 추첨</h2>
-      <div id="numbers" class="numbers">
-        <!-- 번호가 여기에 표시됩니다 -->
-      </div>
-      <div style="text-align: center;">
-        <button class="btn" id="generateBtn">번호 생성</button>
-        <button class="btn secondary" id="clearBtn">초기화</button>
-      </div>
-    </div>
-
-    <div class="card history">
-      <h2>추첨 기록</h2>
-      <div id="history">
-        <!-- 기록이 여기에 표시됩니다 -->
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>제휴 문의</h2>
-      <p class="subtitle" style="margin: 0 0 16px;">간단한 정보와 문의 내용을 남겨주세요.</p>
-      <form id="partnerInquiryForm" class="inquiry-form">
-        <div class="form-grid">
-          <div>
-            <label for="inquiryName">이름 *</label>
-            <input id="inquiryName" name="name" type="text" required />
-          </div>
-          <div>
-            <label for="inquiryEmail">이메일 *</label>
-            <input id="inquiryEmail" name="email" type="email" required />
-          </div>
-          <div class="full">
-            <label for="inquiryCompany">회사명</label>
-            <input id="inquiryCompany" name="company" type="text" />
-          </div>
-          <div class="full">
-            <label for="inquiryMessage">문의 내용 *</label>
-            <textarea id="inquiryMessage" name="message" required></textarea>
-          </div>
+    <div class="layout">
+      <aside class="card">
+        <h2>내 프로필</h2>
+        <div class="current-profile-pill sidebar">
+          <div id="currentProfileAvatar" class="avatar-circle">🦥</div>
+          <div id="currentProfile" class="profile-status">로그인 없음</div>
         </div>
-        <input type="hidden" name="_subject" value="bingo2026 제휴 문의" />
-        <button class="btn" type="submit" id="inquirySubmitBtn">문의 보내기</button>
-        <p id="formStatus" class="form-status" aria-live="polite"></p>
-      </form>
-    </div>
+        <div class="row">
+          <select id="profileSelect" class="input">
+            <option value="jeon_seungdeok">전승덕</option>
+            <option value="jeon_hyeji">전혜지</option>
+            <option value="seo_hyeonjun">서현준</option>
+            <option value="joo_hyebin">주혜빈</option>
+          </select>
+          <button id="createOrLoadBtn" class="btn">로그인</button>
+        </div>
+        <p class="small" style="margin:8px 0 0;">내 프로필로 로그인한 경우에만 내 빙고판 체크/수정이 가능합니다.</p>
+        <p class="small" style="margin:6px 0 0;">다른 사람 빙고판은 조회만 가능하며 수정은 잠겨있습니다.</p>
 
-    <div class="card">
-      <h2>댓글</h2>
-      <div id="disqus_thread"></div>
-      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by
-          Disqus.</a></noscript>
+        <h3 style="margin-top:16px;">참여자 빙고판</h3>
+        <div id="playerList" class="player-list"></div>
+      </aside>
+
+      <main class="card">
+        <div id="boardContainer"></div>
+      </main>
     </div>
   </div>
 
-  <script>
-    const LS_KEY = "lotto_history";
-    const THEME_KEY = "lotto_theme";
+  <div id="editModal" class="modal-backdrop hidden" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <h3 id="modalTitle">칸 편집</h3>
+        <button id="modalCloseBtn" class="modal-close" type="button" aria-label="닫기">✕</button>
+      </div>
+      <div class="small">선택한 칸의 이모티콘과 내용을 수정하세요.</div>
+      <div class="editor-grid" style="margin-top:10px;">
+        <label for="emojiInput">이모티콘</label>
+        <div class="row wrap">
+          <input id="emojiInput" class="input" type="text" maxlength="4" placeholder="예: 🌟" />
+        </div>
+        <label>빠른 선택</label>
+        <div id="emojiQuickPick" class="emoji-grid"></div>
+        <label for="textInput">내용</label>
+        <textarea id="textInput" class="textarea" rows="3" maxlength="40" placeholder="예: 주 3회 운동"></textarea>
+      </div>
+      <div class="row" style="margin-top:12px; justify-content:flex-end;">
+        <button id="modalCancelBtn" class="btn secondary" type="button">취소</button>
+        <button id="saveCellBtn" class="btn" type="button">저장</button>
+      </div>
+      <div class="small" style="margin-top:10px;">iPhone에서는 입력창을 누르면 이모티콘 키보드로 직접 입력할 수 있고, 아래 빠른 선택도 가능합니다.</div>
+    </div>
+  </div>
 
-    // 테마 설정
-    const themeToggle = document.getElementById('themeToggle');
-    const body = document.body;
+  <div class="music-widget-floating">
+    <div class="music-head compact">
+      <strong>BGM</strong>
+      <span id="musicStatus" class="small">로딩 중...</span>
+    </div>
+    <div class="row wrap" style="margin-top:6px;">
+      <button id="musicPlayBtn" class="icon-btn" type="button" aria-label="재생" title="재생">▶</button>
+      <button id="musicPauseBtn" class="icon-btn" type="button" aria-label="일시정지" title="일시정지">⏸</button>
+      <button id="musicMuteBtn" class="icon-btn" type="button" aria-label="음소거" title="음소거">🔇</button>
+    </div>
+    <input id="musicVolume" type="range" min="0" max="100" value="35" class="volume-range compact" />
+    <div id="ytPlayerHost" aria-hidden="true"></div>
+  </div>
 
-    function setTheme(isDark) {
-      if (isDark) {
-        body.classList.add('dark-mode');
-        themeToggle.textContent = '라이트 모드';
-        localStorage.setItem(THEME_KEY, 'dark');
-      } else {
-        body.classList.remove('dark-mode');
-        themeToggle.textContent = '다크 모드';
-        localStorage.setItem(THEME_KEY, 'light');
-      }
-    }
-
-    themeToggle.addEventListener('click', () => {
-      const isDark = body.classList.contains('dark-mode');
-      setTheme(!isDark);
-    });
-
-    // 초기 테마 로드
-    const savedTheme = localStorage.getItem(THEME_KEY);
-    if (savedTheme === 'dark') {
-      setTheme(true);
-    }
-
-    function getRandomNumbers() {
-      const numbers = [];
-      while (numbers.length < 6) {
-        const num = Math.floor(Math.random() * 45) + 1;
-        if (!numbers.includes(num)) {
-          numbers.push(num);
-        }
-      }
-      numbers.sort((a, b) => a - b);
-      let bonus = Math.floor(Math.random() * 45) + 1;
-      while (numbers.includes(bonus)) {
-        bonus = Math.floor(Math.random() * 45) + 1;
-      }
-      return { main: numbers, bonus };
-    }
-
-    function displayNumbers({ main, bonus }) {
-      const container = document.getElementById('numbers');
-      container.innerHTML = '';
-      main.forEach(num => {
-        const ball = document.createElement('div');
-        ball.className = 'number-ball';
-        ball.textContent = num;
-        container.appendChild(ball);
-      });
-      const bonusBall = document.createElement('div');
-      bonusBall.className = 'number-ball bonus-ball';
-      bonusBall.textContent = bonus;
-      bonusBall.style.marginLeft = '20px';
-      container.appendChild(bonusBall);
-    }
-
-    function saveHistory(numbers) {
-      const history = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-      history.unshift({
-        numbers,
-        date: new Date().toLocaleString('ko-KR')
-      });
-      if (history.length > 10) history.pop();
-      localStorage.setItem(LS_KEY, JSON.stringify(history));
-      displayHistory();
-    }
-
-    function displayHistory() {
-      const history = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-      const container = document.getElementById('history');
-      container.innerHTML = '';
-      if (history.length === 0) {
-        container.innerHTML = '<p>아직 추첨 기록이 없습니다.</p>';
-        return;
-      }
-      history.forEach(item => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'history-item';
-        const numbersDiv = document.createElement('div');
-        numbersDiv.className = 'history-numbers';
-        item.numbers.main.forEach(num => {
-          const ball = document.createElement('div');
-          ball.className = 'small-ball';
-          ball.textContent = num;
-          numbersDiv.appendChild(ball);
-        });
-        const bonusBall = document.createElement('div');
-        bonusBall.className = 'small-ball';
-        bonusBall.textContent = item.numbers.bonus;
-        bonusBall.style.background = 'linear-gradient(135deg, #48cae4, #023e8a)';
-        numbersDiv.appendChild(bonusBall);
-        const dateDiv = document.createElement('div');
-        dateDiv.className = 'date';
-        dateDiv.textContent = item.date;
-        itemDiv.appendChild(numbersDiv);
-        itemDiv.appendChild(dateDiv);
-        container.appendChild(itemDiv);
-      });
-    }
-
-    document.getElementById('generateBtn').addEventListener('click', () => {
-      const numbers = getRandomNumbers();
-      displayNumbers(numbers);
-      saveHistory(numbers);
-    });
-
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      document.getElementById('numbers').innerHTML = '';
-    });
-
-    const inquiryForm = document.getElementById('partnerInquiryForm');
-    const inquirySubmitBtn = document.getElementById('inquirySubmitBtn');
-    const formStatus = document.getElementById('formStatus');
-
-    inquiryForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      formStatus.className = 'form-status';
-      formStatus.textContent = '문의 전송 중입니다...';
-      inquirySubmitBtn.disabled = true;
-
-      try {
-        const response = await fetch('https://formspree.io/f/xreyzeql', {
-          method: 'POST',
-          body: new FormData(inquiryForm),
-          headers: {
-            Accept: 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('submit_failed');
-        }
-
-        inquiryForm.reset();
-        formStatus.className = 'form-status success';
-        formStatus.textContent = '문의가 접수되었습니다. 빠르게 확인 후 연락드리겠습니다.';
-      } catch (error) {
-        formStatus.className = 'form-status error';
-        formStatus.textContent = '전송에 실패했습니다. 잠시 후 다시 시도해주세요.';
-      } finally {
-        inquirySubmitBtn.disabled = false;
-      }
-    });
-
-    var disqus_config = function () {
-      this.page.url = window.location.href;
-      this.page.identifier = 'bingo2026-home';
-    };
-
-    (function () {
-      var d = document, s = d.createElement('script');
-      s.src = 'https://bingo2026.disqus.com/embed.js';
-      s.setAttribute('data-timestamp', +new Date());
-      (d.head || d.body).appendChild(s);
-    })();
-
-    displayHistory();
-  </script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="./assets/js/data.js"></script>
+  <script defer src="./assets/js/game.js"></script>
+  <script defer src="./assets/js/supabase-config.js"></script>
+  <script defer src="./assets/js/app.js"></script>
 </body>
 
 </html>
