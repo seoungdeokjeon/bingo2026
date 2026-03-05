@@ -758,6 +758,7 @@ button {
 
 .music-head.compact {
   gap: 4px;
+  align-items: center;
 }
 
 .music-head.compact strong {
@@ -766,6 +767,31 @@ button {
 
 .music-head.compact .small {
   font-size: .72rem;
+  flex: 1 1 auto;
+}
+
+.music-toggle-btn {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 8px;
+  font-size: .92rem;
+  padding: 0;
+}
+
+.music-widget-floating.collapsed {
+  width: 170px;
+  padding-top: 8px;
+}
+
+.music-widget-floating.collapsed .music-preview,
+.music-widget-floating.collapsed .row.wrap,
+.music-widget-floating.collapsed .volume-range.compact {
+  display: none;
+}
+
+.music-widget-floating.collapsed .music-toggle-btn {
+  transform: rotate(180deg);
 }
 
 .volume-range.compact {

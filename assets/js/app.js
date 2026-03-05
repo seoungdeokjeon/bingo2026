@@ -37,7 +37,7 @@
     musicStatus: document.getElementById('musicStatus'),
     musicPlayBtn: document.getElementById('musicPlayBtn'),
     musicPauseBtn: document.getElementById('musicPauseBtn'),
-    musicMuteBtn: document.getElementById('musicMuteBtn'),
+    musicToggleBtn: document.getElementById('musicToggleBtn'),
     musicVolume: document.getElementById('musicVolume'),
     ytPlayerHost: document.getElementById('ytPlayerHost'),
     bgmPreviewVideo: document.getElementById('bgmPreviewVideo')
@@ -417,7 +417,6 @@
     musicMuted = !!ytPlayer.isMuted();
     el.musicPlayBtn.classList.toggle('is-active', stateCode === window.YT.PlayerState.PLAYING);
     el.musicPauseBtn.classList.toggle('is-active', stateCode === window.YT.PlayerState.PAUSED);
-    el.musicMuteBtn.classList.toggle('is-active', musicMuted);
   }
 
   function initYouTubePlayer() {
@@ -464,7 +463,7 @@
           if (event.data === window.YT.PlayerState.PLAYING) updateMusicStatus(musicMuted ? '재생 중 (음소거)' : '재생 중');
           if (event.data === window.YT.PlayerState.PAUSED) updateMusicStatus('일시정지');
           if (event.data === window.YT.PlayerState.ENDED) updateMusicStatus('다음 곡으로 루프');
-          if ((event.data === window.YT.PlayerState.UNSTARTED || event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.CUED) && forcePlayRetryCount < 8) {
+          if ((event.data === window.YT.PlayerState.UNSTARTED || event.data === window.YT.PlayerState.CUED) && forcePlayRetryCount < 8) {
             forcePlayRetryCount += 1;
             setTimeout(function () {
               if (!ytPlayer) return;
@@ -781,26 +780,20 @@
       setMusicButtonState();
     });
 
-    el.musicMuteBtn.addEventListener('click', function () {
-      if (!ytPlayer) return;
-      if (musicMuted) {
-        ytPlayer.unMute();
-        musicMuted = false;
-        el.musicMuteBtn.textContent = '🔊';
-        updateMusicStatus('재생 중');
-      } else {
-        ytPlayer.mute();
-        musicMuted = true;
-        el.musicMuteBtn.textContent = '🔇';
-        updateMusicStatus('재생 중 (음소거)');
-      }
-      setMusicButtonState();
-    });
-
     el.musicVolume.addEventListener('input', function () {
       if (!ytPlayer) return;
       ytPlayer.setVolume(Number(el.musicVolume.value));
     });
+
+    if (el.musicToggleBtn) {
+      el.musicToggleBtn.addEventListener('click', function () {
+        const widget = el.musicToggleBtn.closest('.music-widget-floating');
+        if (!widget) return;
+        const collapsed = widget.classList.toggle('collapsed');
+        el.musicToggleBtn.textContent = collapsed ? '▴' : '▾';
+        el.musicToggleBtn.setAttribute('aria-label', collapsed ? 'BGM 창 펼치기' : 'BGM 창 접기');
+      });
+    }
 
     window.onYouTubeIframeAPIReady = initYouTubePlayer;
     if (window.YT && window.YT.Player) initYouTubePlayer();
