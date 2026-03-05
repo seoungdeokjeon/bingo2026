@@ -22,7 +22,7 @@
 
   <div class="wrap">
     <header class="hero">
-      <h1>🌸 Bingo 2026 🌸</h1>
+      <h1>✦ Bingo 2026 ✦</h1>
       <div class="subtitle">혜지, 현준, 혜빈, 승덕이 함께하는 5x5 빙고. 3줄 먼저 완성하면 승리!</div>
       <div class="countdown" id="countdownTimer">2026년 12월 31일까지 남은 시간 계산 중...</div>
     </header>
@@ -81,7 +81,31 @@
     </div>
   </div>
 
+  <div id="warningModal" class="modal-backdrop hidden" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="warningModalTitle">
+      <div class="modal-head">
+        <h3 id="warningModalTitle">안내</h3>
+        <button id="warningModalCloseBtn" class="modal-close" type="button" aria-label="닫기">✕</button>
+      </div>
+      <div id="warningModalMessage" class="small">메시지</div>
+      <div class="row" style="margin-top:12px; justify-content:flex-end;">
+        <button id="warningModalOkBtn" class="btn" type="button">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="successFlash" class="success-flash hidden" aria-hidden="true">
+    <img src="./assets/images/success.png" alt="Success" />
+  </div>
+  <div id="checkFlash" class="check-flash hidden" aria-hidden="true">
+    <img src="./assets/images/check.png" alt="Check" />
+  </div>
+
   <div class="music-widget-floating">
+    <div class="music-preview" aria-hidden="true">
+      <video id="bgmPreviewVideo" class="music-preview-video" autoplay muted loop playsinline webkit-playsinline preload="auto"
+        src="./assets/videos/music-preview-loop.mov"></video>
+    </div>
     <div class="music-head compact">
       <strong>BGM</strong>
       <span id="musicStatus" class="small">로딩 중...</span>

@@ -25,6 +25,12 @@
     modalCloseBtn: document.getElementById('modalCloseBtn'),
     modalCancelBtn: document.getElementById('modalCancelBtn'),
     saveCellBtn: document.getElementById('saveCellBtn'),
+    warningModal: document.getElementById('warningModal'),
+    warningModalCloseBtn: document.getElementById('warningModalCloseBtn'),
+    warningModalOkBtn: document.getElementById('warningModalOkBtn'),
+    warningModalMessage: document.getElementById('warningModalMessage'),
+    successFlash: document.getElementById('successFlash'),
+    checkFlash: document.getElementById('checkFlash'),
     emojiInput: document.getElementById('emojiInput'),
     textInput: document.getElementById('textInput'),
     emojiQuickPick: document.getElementById('emojiQuickPick'),
@@ -33,7 +39,8 @@
     musicPauseBtn: document.getElementById('musicPauseBtn'),
     musicMuteBtn: document.getElementById('musicMuteBtn'),
     musicVolume: document.getElementById('musicVolume'),
-    ytPlayerHost: document.getElementById('ytPlayerHost')
+    ytPlayerHost: document.getElementById('ytPlayerHost'),
+    bgmPreviewVideo: document.getElementById('bgmPreviewVideo')
   };
   const quickEmojis = ['🌟', '🌈', '🎀', '🧸', '🍀', '☀️', '🍓', '🎵', '🫧', '🐰', '🌼', '🧁', '📚', '🎬', '🏃', '🍵', '💌', '🧩', '🌷', '✨', '💖', '🎉', '🛼', '🧃'];
   const SUPABASE_URL = window.SUPABASE_URL || '';
@@ -46,6 +53,13 @@
   let syncQueued = false;
   let pullInFlight = false;
   let lastServerSignature = '';
+  let successFlashTimer = null;
+  let checkFlashTimer = null;
+  let autoPlayRetryCount = 0;
+  let forcePlayRetryCount = 0;
+  let pullSchedulerTimer = null;
+  const PULL_INTERVAL_VISIBLE_MS = 30000;
+  const PULL_INTERVAL_HIDDEN_MS = 180000;
   const PROFILE_AVATARS = {
     jeon_seungdeok: { emoji: '🦥', src: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f9a5.svg' },
     seo_hyeonjun: { emoji: '🍉', src: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f349.svg' },
@@ -190,6 +204,10 @@
 
     const cells = board.querySelectorAll('[data-cell-index]');
     const boardRect = board.getBoundingClientRect();
+    overlay.style.left = board.offsetLeft + 'px';
+    overlay.style.top = board.offsetTop + 'px';
+    overlay.style.width = boardRect.width + 'px';
+    overlay.style.height = boardRect.height + 'px';
     overlay.setAttribute('viewBox', '0 0 ' + boardRect.width + ' ' + boardRect.height);
     overlay.setAttribute('width', boardRect.width);
     overlay.setAttribute('height', boardRect.height);
@@ -211,6 +229,82 @@
       lineEl.style.animationDelay = (idx * 0.09) + 's';
       overlay.appendChild(lineEl);
     });
+  }
+
+  function playSuccessSound() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99];
+
+    notes.forEach(function (freq, idx) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+      gain.gain.setValueAtTime(0.0001, now + idx * 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.16, now + idx * 0.06 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.06 + 0.28);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + idx * 0.06);
+      osc.stop(now + idx * 0.06 + 0.3);
+    });
+  }
+
+  function playCheckSound() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(720, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.24);
+  }
+
+  function triggerSuccessFlash() {
+    if (!el.successFlash) return;
+    const image = el.successFlash.querySelector('img');
+    el.successFlash.classList.remove('hidden');
+    if (image) {
+      image.style.animation = 'none';
+      void image.offsetWidth;
+      image.style.animation = 'success-burst 1.1s ease forwards';
+    }
+
+    if (successFlashTimer) clearTimeout(successFlashTimer);
+    successFlashTimer = setTimeout(function () {
+      el.successFlash.classList.add('hidden');
+      successFlashTimer = null;
+    }, 1100);
+  }
+
+  function triggerCheckFlash() {
+    if (!el.checkFlash) return;
+    const image = el.checkFlash.querySelector('img');
+    el.checkFlash.classList.remove('hidden');
+    if (image) {
+      image.style.animation = 'none';
+      void image.offsetWidth;
+      image.style.animation = 'check-burst .8s ease forwards';
+    }
+
+    if (checkFlashTimer) clearTimeout(checkFlashTimer);
+    checkFlashTimer = setTimeout(function () {
+      el.checkFlash.classList.add('hidden');
+      checkFlashTimer = null;
+    }, 800);
   }
 
   function updateMusicStatus(text) {
@@ -262,6 +356,20 @@
     }
   }
 
+  function schedulePull(delayMs) {
+    if (pullSchedulerTimer) clearTimeout(pullSchedulerTimer);
+    pullSchedulerTimer = setTimeout(function () {
+      pullPlayersFromServer().finally(function () {
+        scheduleNextPull();
+      });
+    }, delayMs);
+  }
+
+  function scheduleNextPull() {
+    const interval = document.hidden ? PULL_INTERVAL_HIDDEN_MS : PULL_INTERVAL_VISIBLE_MS;
+    schedulePull(interval);
+  }
+
   async function pushPlayersToServer() {
     if (!supabaseClient) return;
     const rows = Object.values(state.players).map(function (player) {
@@ -306,6 +414,7 @@
   function setMusicButtonState() {
     if (!ytPlayer || !window.YT || !window.YT.PlayerState) return;
     const stateCode = ytPlayer.getPlayerState();
+    musicMuted = !!ytPlayer.isMuted();
     el.musicPlayBtn.classList.toggle('is-active', stateCode === window.YT.PlayerState.PLAYING);
     el.musicPauseBtn.classList.toggle('is-active', stateCode === window.YT.PlayerState.PAUSED);
     el.musicMuteBtn.classList.toggle('is-active', musicMuted);
@@ -314,31 +423,61 @@
   function initYouTubePlayer() {
     if (!window.YT || !window.YT.Player || ytPlayer) return;
 
+    function tryForcePlay(player) {
+      if (!player) return;
+      player.setVolume(Number(el.musicVolume.value));
+      player.unMute();
+      musicMuted = false;
+      player.playVideo();
+      setMusicButtonState();
+    }
+
     ytPlayer = new window.YT.Player('ytPlayerHost', {
       height: '1',
       width: '1',
-      videoId: 'gzlUbrMlTVQ',
+      videoId: 'dZHmrMY2hK8',
       playerVars: {
         autoplay: 1,
         mute: 0,
         controls: 0,
         loop: 1,
-        playlist: 'gzlUbrMlTVQ',
+        playlist: 'dZHmrMY2hK8',
         modestbranding: 1,
         rel: 0
       },
       events: {
         onReady: function (event) {
-          event.target.setVolume(Number(el.musicVolume.value));
-          event.target.unMute();
-          updateMusicStatus('준비됨');
-          event.target.playVideo();
-          setMusicButtonState();
+          updateMusicStatus('화면을 눌러 음악 재생');
+          tryForcePlay(event.target);
+          // Retry a few times right after load to maximize autoplay success.
+          [220, 520, 980, 1600].forEach(function (delay) {
+            setTimeout(function () {
+              if (!ytPlayer || !window.YT || !window.YT.PlayerState) return;
+              const stateCode = ytPlayer.getPlayerState();
+              if (stateCode !== window.YT.PlayerState.PLAYING) {
+                tryForcePlay(ytPlayer);
+              }
+            }, delay);
+          });
         },
         onStateChange: function (event) {
           if (event.data === window.YT.PlayerState.PLAYING) updateMusicStatus(musicMuted ? '재생 중 (음소거)' : '재생 중');
           if (event.data === window.YT.PlayerState.PAUSED) updateMusicStatus('일시정지');
           if (event.data === window.YT.PlayerState.ENDED) updateMusicStatus('다음 곡으로 루프');
+          if ((event.data === window.YT.PlayerState.UNSTARTED || event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.CUED) && forcePlayRetryCount < 8) {
+            forcePlayRetryCount += 1;
+            setTimeout(function () {
+              if (!ytPlayer) return;
+              tryForcePlay(ytPlayer);
+            }, 300);
+          }
+          if (event.data === window.YT.PlayerState.UNSTARTED && autoPlayRetryCount < 4) {
+            autoPlayRetryCount += 1;
+            setTimeout(function () {
+              if (!ytPlayer) return;
+              ytPlayer.playVideo();
+            }, 400 * autoPlayRetryCount);
+          }
           setMusicButtonState();
         }
       }
@@ -393,20 +532,51 @@
     state.selectedCellIndex = null;
   }
 
+  function openWarningModal(message) {
+    if (!el.warningModal || !el.warningModalMessage) return;
+    el.warningModalMessage.textContent = message;
+    el.warningModal.classList.remove('hidden');
+    el.warningModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeWarningModal() {
+    if (!el.warningModal) return;
+    el.warningModal.classList.add('hidden');
+    el.warningModal.setAttribute('aria-hidden', 'true');
+  }
+
   function toggleOrSelectCell(index) {
     const player = getActivePlayer();
     if (!player) return;
+    if (!state.myPlayerId) {
+      openWarningModal('로그인을 먼저 해주세요.');
+      return;
+    }
     const isOwner = player.id === state.myPlayerId;
-    if (!isOwner || player.winnerAt) return;
+    if (!isOwner) {
+      openWarningModal('이 빙고판은 내 빙고판이 아닙니다. 다른 사람 보드는 수정할 수 없어요.');
+      return;
+    }
+    if (player.winnerAt) return;
 
     if (state.mode === 'edit') {
       openEditModal(index);
       return;
     }
 
+    const linesBefore = window.BingoGame.countLines(player.board);
     player.board[index].checked = !player.board[index].checked;
+    const isNowChecked = !!player.board[index].checked;
     player.updatedAt = new Date().toISOString();
     window.BingoGame.updateWinner(player);
+    const linesAfter = window.BingoGame.countLines(player.board);
+    if (linesAfter > linesBefore) {
+      triggerSuccessFlash();
+      playSuccessSound();
+    } else if (isNowChecked) {
+      triggerCheckFlash();
+      playCheckSound();
+    }
     persistAndRender();
   }
 
@@ -554,14 +724,24 @@
     el.modalCloseBtn.addEventListener('click', closeEditModal);
     el.modalCancelBtn.addEventListener('click', closeEditModal);
     el.saveCellBtn.addEventListener('click', saveCellEdit);
+    if (el.warningModalCloseBtn) el.warningModalCloseBtn.addEventListener('click', closeWarningModal);
+    if (el.warningModalOkBtn) el.warningModalOkBtn.addEventListener('click', closeWarningModal);
 
     el.editModal.addEventListener('click', function (event) {
       if (event.target === el.editModal) closeEditModal();
     });
+    if (el.warningModal) {
+      el.warningModal.addEventListener('click', function (event) {
+        if (event.target === el.warningModal) closeWarningModal();
+      });
+    }
 
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape' && !el.editModal.classList.contains('hidden')) {
         closeEditModal();
+      }
+      if (event.key === 'Escape' && el.warningModal && !el.warningModal.classList.contains('hidden')) {
+        closeWarningModal();
       }
     });
 
@@ -622,6 +802,51 @@
     if (window.YT && window.YT.Player) initYouTubePlayer();
   }
 
+  function bindMusicAutoplayFallback() {
+    function activateAudioPlayback() {
+      if (!ytPlayer) return;
+      ytPlayer.unMute();
+      ytPlayer.playVideo();
+      musicMuted = false;
+      updateMusicStatus('재생 중');
+      setMusicButtonState();
+      window.removeEventListener('pointerdown', activateAudioPlayback);
+      window.removeEventListener('touchstart', activateAudioPlayback);
+      window.removeEventListener('keydown', activateAudioPlayback);
+    }
+
+    window.addEventListener('pointerdown', activateAudioPlayback, { passive: true });
+    window.addEventListener('touchstart', activateAudioPlayback, { passive: true });
+    window.addEventListener('keydown', activateAudioPlayback, { passive: true });
+  }
+
+
+  function bindMusicPreviewVideo() {
+    if (!el.bgmPreviewVideo) return;
+    const previewWrap = el.bgmPreviewVideo.closest('.music-preview');
+    if (!previewWrap) return;
+
+    function playPreview() {
+      const playPromise = el.bgmPreviewVideo.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(function () { });
+      }
+    }
+
+    function fallbackToYouTubePreview() {
+      previewWrap.innerHTML =
+        '<iframe ' +
+        'src="https://www.youtube.com/embed/gzlUbrMlTVQ?autoplay=1&mute=1&loop=1&playlist=gzlUbrMlTVQ&controls=0&modestbranding=1&rel=0&playsinline=1" ' +
+        'title="BGM Preview" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" ' +
+        'referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+    }
+
+    el.bgmPreviewVideo.addEventListener('loadeddata', playPreview);
+    el.bgmPreviewVideo.addEventListener('canplay', playPreview);
+    el.bgmPreviewVideo.addEventListener('error', fallbackToYouTubePreview);
+    playPreview();
+  }
+
   function render() {
     renderCurrentProfile();
     renderPlayerList();
@@ -646,6 +871,18 @@
   el.createOrLoadBtn.addEventListener('click', loginSelectedProfile);
 
   window.addEventListener('resize', render);
+  document.addEventListener('visibilitychange', function () {
+    if (!supabaseClient) return;
+    if (!document.hidden) {
+      pullPlayersFromServer().finally(scheduleNextPull);
+      return;
+    }
+    scheduleNextPull();
+  });
+  window.addEventListener('focus', function () {
+    if (!supabaseClient) return;
+    pullPlayersFromServer().finally(scheduleNextPull);
+  });
 
   initializeFixedProfiles();
   if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
@@ -653,11 +890,12 @@
   }
   bindModalEvents();
   bindMusicEvents();
+  bindMusicAutoplayFallback();
+  bindMusicPreviewVideo();
   bindClickFeedback();
   updateCountdown();
   setInterval(updateCountdown, 1000);
   ensureViewingPlayer();
   render();
-  pullPlayersFromServer();
-  setInterval(pullPlayersFromServer, 5000);
+  pullPlayersFromServer().finally(scheduleNextPull);
 })();
